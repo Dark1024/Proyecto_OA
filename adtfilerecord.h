@@ -1,6 +1,7 @@
 #ifndef ADTFILERECORD_H
 #define ADTFILERECORD_H
 
+#include <vector>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -27,20 +28,26 @@ public:
     virtual bool updateRecord(int, string);
     virtual bool deleteRecord(int);
     //virtual void compact();
-    void setDataStart(int);
-    void setRecordLength(int);
-    void readHeader(char*);
-    FileHeader* getFileHeader();
+    virtual void setDataStart(int);
+    virtual void setRecordLength(int);
+    virtual void readHeader(char*);
     virtual int getDataStart();
+    virtual void addField(Field*);
+    virtual void modifyField(int, Field*);
+    virtual void removeField(int);
+    virtual Field* getField(int);
+    virtual string toStringHeader() const;
+    virtual int fieldsSize() const;
+    vector<Field*> getFields();
 
 private:
     int recordLength;
     int dataStart;
 
-    FileHeader* header;
     string fileName;
     fstream FS;
     QStack<int> AvailList;
+    vector<Field*> fields;
 };
 
 #endif // ADTFILERECORD_H

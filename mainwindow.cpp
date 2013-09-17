@@ -19,8 +19,8 @@ void MainWindow::on_NewFile_triggered()
         this->fileRecord.close();
     }
 
-    while(this->fileRecord.getFileHeader()->fieldsSize() != 0){
-        this->fileRecord.getFileHeader()->removeField(0);
+    while(this->fileRecord.fieldsSize() != 0){
+        this->fileRecord.removeField(0);
     }
 
     QString directory = QFileDialog::getExistingDirectory(this,"New File","");
@@ -96,14 +96,14 @@ void MainWindow::on_createField_triggered()
         Field* newField = createField->getField();
 
         if(newField != NULL){
-            for(int i = 0; i < this->fileRecord.getFileHeader()->fieldsSize(); i++){
-                if(this->fileRecord.getFileHeader()->getField(i)->isKey()){
+            for(int i = 0; i < this->fileRecord.fieldsSize(); i++){
+                if(this->fileRecord.getField(i)->isKey()){
                     newField->setKey(0);
-                    i = this->fileRecord.getFileHeader()->fieldsSize();
+                    i = this->fileRecord.fieldsSize();
                 }
             }
 
-            this->fileRecord.getFileHeader()->addField(newField);
+            this->fileRecord.addField(newField);
         }else{
             cout<<"Campo NULL"<<endl;
         }
@@ -111,7 +111,7 @@ void MainWindow::on_createField_triggered()
         this->fileRecord.seekp(0,ios_base::beg);
         this->fileRecord.seekg(0,ios_base::beg);
 
-        string header = this->fileRecord.getFileHeader()->toString();
+        string header = this->fileRecord.toStringHeader();
         cout<<header<<endl;
         this->fileRecord.setDataStart(header.size());
 
@@ -126,7 +126,7 @@ void MainWindow::on_modifyField_triggered()
     if(this->fileRecord.isOpen()){
         ModifyFieldWindow* modifyField = new ModifyFieldWindow();
         cout<<"Marca1"<<endl;
-        modifyField->setFields(this->fileRecord.getFileHeader()->getFields());
+        modifyField->setFields(this->fileRecord.getFields());
         modifyField->exec();
 
         cout<<"Marca2"<<endl;
@@ -134,7 +134,7 @@ void MainWindow::on_modifyField_triggered()
 
         if(newField != NULL){
             int index = modifyField->getIndex();
-            this->fileRecord.getFileHeader()->modifyField(index, newField);
+            this->fileRecord.modifyField(index,newField);
         }else{
             cout<<"Campo NULL"<<endl;
         }
@@ -154,7 +154,7 @@ void MainWindow::on_listField_triggered()
         return;
     }
 
-    if(this->fileRecord.getFileHeader()->fieldsSize() <= 0){
+    if(this->fileRecord.fieldsSize() <= 0){
         QMessageBox::warning(this,"Error","El archivo abierto no contiene campos");
         return;
     }
@@ -168,7 +168,7 @@ void MainWindow::on_listField_triggered()
     model->setHorizontalHeaderItem(4,new QStandardItem(QString("Decimales")));
 
     QString tmp;
-    vector<Field*> fields = this->fileRecord.getFileHeader()->getFields();
+    vector<Field*> fields = this->fileRecord.getFields();
     stringstream ss;
 
     for(int i = 0; i < fields.size(); i++){

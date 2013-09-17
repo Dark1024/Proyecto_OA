@@ -2,7 +2,6 @@
 #define MAINWINDOW_H
 
 #include "adtfilerecord.h"
-#include "fileheader.h"
 #include "field.h"
 #include "newfieldwindow.h"
 #include "modifyfieldwindow.h"

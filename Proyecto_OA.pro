@@ -17,7 +17,6 @@ SOURCES += main.cpp\
     adtfile.cpp \
     adtfilerecord.cpp \
     field.cpp \
-    fileheader.cpp \
     newfieldwindow.cpp \
     modifyfieldwindow.cpp \
     record.cpp \
@@ -28,7 +27,6 @@ HEADERS  += mainwindow.h \
     adtfile.h \
     adtfilerecord.h \
     field.h \
-    fileheader.h \
     newfieldwindow.h \
     modifyfieldwindow.h \
     record.h \
