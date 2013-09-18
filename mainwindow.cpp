@@ -46,6 +46,53 @@ void MainWindow::on_NewFile_triggered()
     }
 }
 
+void MainWindow::on_OpenFile_triggered()
+{
+    if(this->fileRecord.isOpen()){
+        this->fileRecord.flush();
+        this->fileRecord.close();
+    }
+
+    QString file = QFileDialog::getOpenFileName(this,"Abrir Archivo","","Archivos de Base de datos(*.jjdb)");
+
+    if(this->fileRecord.open(file.toStdString(),ios_base::in | ios_base::out)){
+        while(this->fileRecord.fieldsSize() != 0){
+            this->fileRecord.removeField(0);
+        }
+
+        this->fileRecord.seekg(1,ios_base::beg);
+
+        char* tmp = new char[2];
+        stringstream ss;
+        int data_start = 0;
+
+        while(this->fileRecord.read(tmp,1) != NULL){
+            data_start++;
+            if(tmp[0] == '$' && data_start != 1){
+                break;
+            }else{
+                ss<<tmp[0];
+            }
+        }
+        data_start++;
+        this->fileRecord.setDataStart(data_start);
+        cout<<"Data Start: "<<this->fileRecord.getDataStart()<<endl;
+
+        char* header = new char[ss.str().length() + 1];
+        strcpy(header,ss.str().c_str());
+
+        this->fileRecord.readHeader(header);
+
+        if(this->fileRecord.isOpen()){
+            QMessageBox::information(this,"Exitoso","Se ha cargado el encabezado del archivo correctamente");
+        }else{
+            QMessageBox::critical(this,"Error","Hubo un error al momento de cargar el encabezado del archivo");
+        }
+    }else{
+        QMessageBox::critical(this,"Error","Hubo un error al momento de abrir el archivo");
+    }
+}
+
 void MainWindow::on_SaveFile_triggered()
 {
     if(this->fileRecord.isOpen()){
@@ -94,7 +141,6 @@ void MainWindow::on_createField_triggered()
         createField->exec();
 
         Field* newField = createField->getField();
-
         if(newField != NULL){
             for(int i = 0; i < this->fileRecord.fieldsSize(); i++){
                 if(this->fileRecord.getField(i)->isKey()){
@@ -102,18 +148,17 @@ void MainWindow::on_createField_triggered()
                     i = this->fileRecord.fieldsSize();
                 }
             }
-
             this->fileRecord.addField(newField);
         }else{
             cout<<"Campo NULL"<<endl;
         }
 
-        this->fileRecord.seekp(0,ios_base::beg);
-        this->fileRecord.seekg(0,ios_base::beg);
-
         string header = this->fileRecord.toStringHeader();
         cout<<header<<endl;
         this->fileRecord.setDataStart(header.size());
+        this->fileRecord.seekp(0,ios_base::beg);
+        this->fileRecord.write(header.c_str(),header.size());
+        this->fileRecord.flush();
 
         delete createField;
     }else{
@@ -139,8 +184,14 @@ void MainWindow::on_modifyField_triggered()
             cout<<"Campo NULL"<<endl;
         }
 
-        //FALTA GUARDAR EN EL FILEHEADER
+        string header = this->fileRecord.toStringHeader();
+        this->fileRecord.seekp(0,ios_base::beg);
+        this->fileRecord.write(header.c_str(),header.size());
+        this->fileRecord.flush();
+
         delete modifyField;
+
+        //FALTA CORRER LOS REGISTROS DESPUES DE MODIFICAR EL CAMPO
     }else{
         QMessageBox::warning(this,"Error","No tiene un archivo abierto para modificar sus campos");
     }

@@ -2,6 +2,8 @@
 
 ADTFileRecord::ADTFileRecord():ADTFile()
 {
+    this->fileName = "";
+    this->recordLength = 0;
 }
 
 ADTFileRecord::ADTFileRecord(string Name,int recordLength):ADTFile()
@@ -111,11 +113,6 @@ void ADTFileRecord::readHeader(char* header)
     }
 }
 
-FileHeader* ADTFileRecord::getFileHeader()
-{
-    return this->header;
-}
-
 int ADTFileRecord::getDataStart()
 {
     return this->dataStart;
@@ -128,7 +125,7 @@ void ADTFileRecord::addField(Field* field)
 
 void ADTFileRecord::modifyField(int n, Field* field)
 {
-    this->fields.at(n).setName(field->getName());
+    this->fields.at(n)->setName(field->getName());
     if(field->isKey()){
         for(int i = 0; i < this->fields.size(); i++){
             if(this->fields.at(i)->isKey()){
@@ -146,7 +143,7 @@ void ADTFileRecord::removeField(int n)
     this->fields.erase(this->fields.begin() + n);
 }
 
-string ADTFileRecord::toStringHeader() const
+string ADTFileRecord::toStringHeader()
 {
     stringstream ss;
     ss<<'$';
@@ -159,7 +156,7 @@ string ADTFileRecord::toStringHeader() const
         }else{
             ss<<'0';
         }
-
+        ss<<',';
         ss<<this->fields.at(i)->getLength()<<','
          <<this->fields.at(i)->getDecimalPlaces();
 
@@ -168,6 +165,7 @@ string ADTFileRecord::toStringHeader() const
         }
     }
     ss<<'$';
+    return ss.str();
 }
 
 vector<Field*> ADTFileRecord::getFields()

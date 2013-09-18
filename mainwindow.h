@@ -48,6 +48,8 @@ private slots:
 
     void on_listField_triggered();
 
+    void on_OpenFile_triggered();
+
 private:
     ADTFileRecord fileRecord;
     Ui::MainWindow *ui;

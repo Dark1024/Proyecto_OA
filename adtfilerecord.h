@@ -11,7 +11,7 @@
 #include <iostream>
 
 #include "adtfile.h"
-#include "fileheader.h"
+#include "field.h"
 
 using namespace std;
 
@@ -36,8 +36,8 @@ public:
     virtual void modifyField(int, Field*);
     virtual void removeField(int);
     virtual Field* getField(int);
-    virtual string toStringHeader() const;
-    virtual int fieldsSize() const;
+    virtual string toStringHeader();
+    virtual int fieldsSize();
     vector<Field*> getFields();
 
 private:
