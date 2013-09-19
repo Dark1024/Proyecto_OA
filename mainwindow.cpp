@@ -34,6 +34,15 @@ void MainWindow::on_NewFile_triggered()
                 this->fileRecord.write("$$",2);
                 this->fileRecord.flush();
                 this->fileRecord.close();
+
+                QString indicesPath = directory + "/" + fileName + "-indices.jjdb";
+                this->indicesFile.open(indicesPath.toStdString().c_str(),ios_base::out);
+                this->indicesFile.write("$$",2);
+                this->indicesFile.flush();
+                this->indicesFile.close();
+
+                this->indicesFile.open(indicesPath.toStdString().c_str(),ios_base::in | ios_base::out);
+
                 if(this->fileRecord.open(Path.toStdString(),ios_base::in | ios_base::out)){
                     QMessageBox::information(this,"Correcto","Se creo y se abrio el archivo correctamente");
                 }else{

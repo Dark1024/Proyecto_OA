@@ -51,6 +51,7 @@ private slots:
     void on_OpenFile_triggered();
 
 private:
+    fstream indicesFile;
     ADTFileRecord fileRecord;
     Ui::MainWindow *ui;
 };
