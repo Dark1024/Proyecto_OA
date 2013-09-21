@@ -5,6 +5,9 @@
 #include "field.h"
 #include "newfieldwindow.h"
 #include "modifyfieldwindow.h"
+#include "primaryindex.h"
+#include "inputdialog.h"
+#include "record.h"
 
 #include <QMainWindow>
 #include <QDialog>
@@ -14,10 +17,12 @@
 #include <QInputDialog>
 #include <QLineEdit>
 #include <QStandardItemModel>
+#include <QMap>
 #include <string>
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 using namespace std;
 
@@ -50,8 +55,12 @@ private slots:
 
     void on_OpenFile_triggered();
 
+    void on_insertRecord_triggered();
+
 private:
-    fstream indicesFile;
+    QMap<string,PrimaryIndex*> map;
+
+    ADTFile indicesFile;
     ADTFileRecord fileRecord;
     Ui::MainWindow *ui;
 };

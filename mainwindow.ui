@@ -58,8 +58,20 @@
     <addaction name="separator"/>
     <addaction name="listField"/>
    </widget>
+   <widget class="QMenu" name="menuRegistros">
+    <property name="title">
+     <string>Registros</string>
+    </property>
+    <addaction name="insertRecord"/>
+    <addaction name="searchRecord"/>
+    <addaction name="deleteRecord"/>
+    <addaction name="listRecord"/>
+    <addaction name="separator"/>
+    <addaction name="crossTables"/>
+   </widget>
    <addaction name="menuArchivo"/>
    <addaction name="menuCampos"/>
+   <addaction name="menuRegistros"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -117,6 +129,31 @@
   <action name="listField">
    <property name="text">
     <string>Listar</string>
+   </property>
+  </action>
+  <action name="insertRecord">
+   <property name="text">
+    <string>Insertar</string>
+   </property>
+  </action>
+  <action name="searchRecord">
+   <property name="text">
+    <string>Buscar</string>
+   </property>
+  </action>
+  <action name="deleteRecord">
+   <property name="text">
+    <string>Eliminar</string>
+   </property>
+  </action>
+  <action name="listRecord">
+   <property name="text">
+    <string>Listar</string>
+   </property>
+  </action>
+  <action name="crossTables">
+   <property name="text">
+    <string>Cruzar Tablas</string>
    </property>
   </action>
  </widget>

@@ -92,10 +92,43 @@ void MainWindow::on_OpenFile_triggered()
 
         this->fileRecord.readHeader(header);
 
-        if(this->fileRecord.isOpen()){
-            QMessageBox::information(this,"Exitoso","Se ha cargado el encabezado del archivo correctamente");
+        //LEER EL ARCHIVO DE INDICES
+
+        QString str = file.insert(file.size()-5,"-indices");
+
+        if(this->indicesFile.open(str.toStdString(),ios_base::in | ios_base::out)){
+            this->indicesFile.seekg(0,ios_base::end);
+            streamoff indexLength = this->indicesFile.tellg();
+
+            char* indexes = new char[indexLength+1];
+
+            this->indicesFile.seekg(0,ios_base::beg);
+            this->indicesFile.read(indexes,indexLength);
+
+            indexes[indexLength] = '\0';
+            string str (indexes);
+            QString qstr = QString::fromStdString(str);
+
+            QStringList list = qstr.split("/");
+
+            for(int i = 0; i < list.size(); i++){
+                QStringList list2 = list.at(i).split(",");
+
+                string key = list2.at(0).toStdString();
+                streamoff offset = atoll(list2.at(1).toStdString().c_str());
+
+                PrimaryIndex* newIndex = new PrimaryIndex(key,offset);
+                this->map.insert(key,newIndex);
+            }
         }else{
-            QMessageBox::critical(this,"Error","Hubo un error al momento de cargar el encabezado del archivo");
+            QMessageBox::critical(this,"Error","Hubo un error al momento de cargar al archivo de indices");
+            return;
+        }
+
+        if(this->fileRecord.isOpen()){
+            QMessageBox::information(this,"Exitoso","Se han cargado los archivos correctamente");
+        }else{
+            QMessageBox::critical(this,"Error","Hubo un error al momento de cargar el archivo de registros");
         }
     }else{
         QMessageBox::critical(this,"Error","Hubo un error al momento de abrir el archivo");
@@ -105,7 +138,7 @@ void MainWindow::on_OpenFile_triggered()
 void MainWindow::on_SaveFile_triggered()
 {
     if(this->fileRecord.isOpen()){
-        if(this->fileRecord.flush()){
+        if(this->fileRecord.flush() && this->indicesFile.flush()){
             QMessageBox::information(this,"Correcto","El archivo se ha guardado correctamente");
         }else{
             QMessageBox::critical(this,"Error","Hubo un error al momento de guardar el archivo");
@@ -118,8 +151,12 @@ void MainWindow::on_SaveFile_triggered()
 
 void MainWindow::on_CloseFile_triggered()
 {
+    this->indicesFile.close();
     if(this->fileRecord.isOpen()){
-        if(this->fileRecord.close()){
+        if(this->fileRecord.close() && !this->indicesFile.isOpen()){
+            while(this->fileRecord.fieldsSize() != 0){
+                this->fileRecord.removeField(0);
+            }
             QMessageBox::information(this,"Correcto","El archivo se cerro correctamente");
         }else{
             QMessageBox::critical(this,"Error","Hubo un error al momento de cerrar el archivo");
@@ -133,6 +170,9 @@ void MainWindow::on_Exit_triggered()
 {
     if(this->fileRecord.isOpen()){
         if(this->fileRecord.close()){
+            while(this->fileRecord.fieldsSize() != 0){
+                this->fileRecord.removeField(0);
+            }
             this->close();
         }else{
             QMessageBox::critical(this,"Error","Hubo un error al momento de guadar el archivo");
@@ -144,7 +184,12 @@ void MainWindow::on_Exit_triggered()
 
 void MainWindow::on_createField_triggered()
 {
-    //FALTA VALIDAR QUE NO SE AGREGREN CAMPOS SI HAY REGISTROS
+
+    if(!this->fileRecord.indexesIsEmpty()){
+        QMessageBox::critical(this,"Error","Ya no puede agregar un campo al archivo");
+        return;
+    }
+
     if(this->fileRecord.isOpen()){
         NewFieldWindow* createField = new NewFieldWindow();
         createField->exec();
@@ -177,6 +222,11 @@ void MainWindow::on_createField_triggered()
 
 void MainWindow::on_modifyField_triggered()
 {
+    if(!this->fileRecord.indexesIsEmpty()){
+        QMessageBox::critical(this,"Error","No puede modificar campos");
+        return;
+    }
+
     if(this->fileRecord.isOpen()){
         ModifyFieldWindow* modifyField = new ModifyFieldWindow();
         cout<<"Marca1"<<endl;
@@ -199,8 +249,6 @@ void MainWindow::on_modifyField_triggered()
         this->fileRecord.flush();
 
         delete modifyField;
-
-        //FALTA CORRER LOS REGISTROS DESPUES DE MODIFICAR EL CAMPO
     }else{
         QMessageBox::warning(this,"Error","No tiene un archivo abierto para modificar sus campos");
     }
@@ -261,4 +309,57 @@ void MainWindow::on_listField_triggered()
         model->setItem(i,4,new QStandardItem(tmp));
     }
     ui->MWTable->setModel(model);
+}
+
+void MainWindow::on_insertRecord_triggered()
+{    
+    if(this->fileRecord.fieldsSize() == 0){
+        QMessageBox::warning(this,"Error","No tiene campos en el archivo, por favor ingrese un campo para continuar");
+        return;
+    }
+
+    //Validar que cuando se ingrese la llave, esta sea unica
+    vector<string> record;
+    vector<Field*> tmpfields = this->fileRecord.getFields();
+
+    for(int i = 0; i < tmpfields.size(); i++){
+        Field* currentField = tmpfields[i];
+
+        InputDialog* idialog = new InputDialog();
+        idialog->setField(currentField);
+        idialog->exec();
+
+        QString text = idialog->getString();
+
+        record.push_back(text.toStdString());
+        delete idialog;
+    }
+
+    if(record.size() != tmpfields.size()){
+        QMessageBox::critical(this,"Error","Error en la cantidad de campos que lleno");
+        return;
+    }
+
+    Record* newRecord =  new Record(tmpfields,record);
+
+    if(this->fileRecord.addRecord(newRecord)){
+        vector<PrimaryIndex*> indexes = this->fileRecord.getIndexes();
+
+        stringstream ss;
+        for(int i = 0; i < indexes.size(); i++){
+            ss<<indexes.at(i)->toString();
+            if(i != indexes.size() -1){
+                ss<<'/';
+            }
+        }
+        this->indicesFile.seekp(0,ios_base::beg);
+        this->indicesFile.write(ss.str().c_str(),ss.str().length());
+        this->indicesFile.flush();
+
+        QMessageBox::information(this,"Correcto","Se ingreso correctamente el nuevo registro");
+        delete newRecord;
+    }else{
+        QMessageBox::critical(this,"Error","Hubo un error al insertar el nuevo registro");
+        delete newRecord;
+    }
 }

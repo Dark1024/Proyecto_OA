@@ -18,7 +18,7 @@ ADTFileRecord::~ADTFileRecord()
     this->FS.close();
 }
 
-void ADTFileRecord::seekgRecord(int recordNumber)
+/*void ADTFileRecord::seekgRecord(int recordNumber)
 {
     this->FS.seekg(this->dataStart + ((recordNumber-1) * this->recordLength));
 }
@@ -77,8 +77,9 @@ bool ADTFileRecord::deleteRecord(int recordNumber)
     this->AvailList.push(recordNumber);
     return true;
 }
+*/
 
-void ADTFileRecord::setDataStart(int dataStart)
+void ADTFileRecord::setDataStart(streamoff dataStart)
 {
     this->dataStart = dataStart;
 }
@@ -113,7 +114,7 @@ void ADTFileRecord::readHeader(char* header)
     }
 }
 
-int ADTFileRecord::getDataStart()
+streamoff ADTFileRecord::getDataStart()
 {
     return this->dataStart;
 }
@@ -181,4 +182,62 @@ int ADTFileRecord::fieldsSize()
 Field* ADTFileRecord::getField(int n)
 {
     return this->fields.at(n);
+}
+
+bool ADTFileRecord::addRecord(Record* record)
+{
+    if(!this->isOpen()){
+        return false;
+    }
+
+    vector<Field*> tmpfields = record->getFields();
+    vector<string> tmprecord = record->getRecord();
+    stringstream ss;
+
+    for (int i = 0; i < tmpfields.size(); i++){
+        Field* tmpcurrentField = tmpfields.at(i);
+        if(tmpcurrentField->isKey()){
+            string str = tmprecord.at(i);
+            ss<<str;
+        }
+    }
+
+    QString key = QString::fromStdString(ss.str());
+
+    if(this->indexes.contains(key)){
+        return false;
+    }
+
+    streamoff offset;
+    if(this->AvailList.isEmpty()){
+        this->seekp(0,ios_base::end);
+        offset = this->tellp();
+    }else{
+        this->seekp(this->AvailList.pop(),ios_base::beg);
+        offset = this->tellp();
+    }
+
+    streamoff length = record->toString().size();
+
+    this->write(record->toString().c_str(),length);
+
+    if(this->isOk()){
+        this->indexes.insert(key,new PrimaryIndex(key.toStdString(),offset));
+    }else{
+        return false;
+    }
+
+    return true;
+}
+
+vector<PrimaryIndex*> ADTFileRecord::getIndexes()
+{
+    return this->indexes.values().toVector().toStdVector();
+}
+
+bool ADTFileRecord::indexesIsEmpty()
+{
+    if(this->indexes.isEmpty())
+        return true;
+    return false;
 }

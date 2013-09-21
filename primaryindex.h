@@ -2,6 +2,7 @@
 #define PRIMARYINDEX_H
 
 #include <string>
+#include <sstream>
 
 #include "object.h"
 
@@ -14,6 +15,7 @@ public:
     const string getKey() const;
     const streamoff getOffset() const;
     virtual bool operator == (const PrimaryIndex&);
+    string toString();
 private:
     string key;
     streamoff offset;

@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 #include <iomanip>
+#include <iostream>
 
 #include "field.h"
 
@@ -14,6 +15,7 @@ class Record
 {
 public:
     Record(vector<Field*>, vector<string>);
+    ~Record();
     string toString() const;
     vector<Field*> getFields() const;
     vector<string> getRecord() const;

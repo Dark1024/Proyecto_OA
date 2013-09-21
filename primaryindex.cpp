@@ -20,3 +20,10 @@ bool PrimaryIndex::operator ==(const PrimaryIndex& pindex)
 {
     return this->key == pindex.key;
 }
+
+string PrimaryIndex::toString()
+{
+    stringstream ss;
+    ss<<this->key<<','<<this->getOffset();
+    return ss.str();
+}

@@ -21,7 +21,8 @@ SOURCES += main.cpp\
     modifyfieldwindow.cpp \
     record.cpp \
     object.cpp \
-    primaryindex.cpp
+    primaryindex.cpp \
+    inputdialog.cpp
 
 HEADERS  += mainwindow.h \
     adtfile.h \
@@ -31,8 +32,10 @@ HEADERS  += mainwindow.h \
     modifyfieldwindow.h \
     record.h \
     object.h \
-    primaryindex.h
+    primaryindex.h \
+    inputdialog.h
 
 FORMS    += mainwindow.ui \
     newfieldwindow.ui \
-    modifyfieldwindow.ui
+    modifyfieldwindow.ui \
+    inputdialog.ui
