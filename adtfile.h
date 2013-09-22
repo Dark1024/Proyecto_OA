@@ -25,7 +25,7 @@ public:
     virtual bool isBOF() const;
     virtual bool flush();
     virtual bool isOk();
-
+    virtual string getFileName();
 protected:
     string Nombre;
     fstream FS;

@@ -18,6 +18,12 @@
 #include <QLineEdit>
 #include <QStandardItemModel>
 #include <QMap>
+#include <QTextDocument>
+#include <QtPrintSupport/qprinter.h>
+#include <QtPrintSupport/qprintdialog.h>
+#include <QtPrintSupport/qtprintsupportglobal.h>
+#include <QXmlStreamWriter>
+
 #include <string>
 #include <vector>
 #include <iostream>
@@ -62,6 +68,14 @@ private slots:
     void on_listRecord_triggered();
 
     void on_deleteRecord_triggered();
+
+    void on_reindex_triggered();
+
+    void on_doSimpleIndexes_triggered();
+
+    void on_PrintFile_triggered();
+
+    void on_exportXML_triggered();
 
 private:
     ADTFile indicesFile;

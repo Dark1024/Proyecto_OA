@@ -69,9 +69,31 @@
     <addaction name="separator"/>
     <addaction name="crossTables"/>
    </widget>
+   <widget class="QMenu" name="menuIndices">
+    <property name="title">
+     <string>Indices</string>
+    </property>
+    <addaction name="doSimpleIndexes"/>
+    <addaction name="separator"/>
+    <addaction name="doBTree"/>
+    <addaction name="separator"/>
+    <addaction name="reindex"/>
+   </widget>
+   <widget class="QMenu" name="menuUtilidades">
+    <property name="title">
+     <string>Utilidades</string>
+    </property>
+    <addaction name="exportXML"/>
+    <addaction name="importXML"/>
+    <addaction name="separator"/>
+    <addaction name="exportJSon"/>
+    <addaction name="importJSon"/>
+   </widget>
    <addaction name="menuArchivo"/>
    <addaction name="menuCampos"/>
    <addaction name="menuRegistros"/>
+   <addaction name="menuIndices"/>
+   <addaction name="menuUtilidades"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -154,6 +176,41 @@
   <action name="crossTables">
    <property name="text">
     <string>Cruzar Tablas</string>
+   </property>
+  </action>
+  <action name="doSimpleIndexes">
+   <property name="text">
+    <string>Crear Indices Simples</string>
+   </property>
+  </action>
+  <action name="doBTree">
+   <property name="text">
+    <string>Crear Indices Arbol B</string>
+   </property>
+  </action>
+  <action name="reindex">
+   <property name="text">
+    <string>Reindexar</string>
+   </property>
+  </action>
+  <action name="exportXML">
+   <property name="text">
+    <string>Exportar XML</string>
+   </property>
+  </action>
+  <action name="importXML">
+   <property name="text">
+    <string>Importar XML</string>
+   </property>
+  </action>
+  <action name="exportJSon">
+   <property name="text">
+    <string>Exportar JSon</string>
+   </property>
+  </action>
+  <action name="importJSon">
+   <property name="text">
+    <string>Importar JSon</string>
    </property>
   </action>
  </widget>

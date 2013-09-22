@@ -315,3 +315,10 @@ bool ADTFileRecord::deleteRecord(PrimaryIndex* index)
     this->AvailList.push_back(offset);
     return true;
 }
+
+void ADTFileRecord::cleanMap()
+{
+    while(this->indexes.size() != 0){
+        this->indexes.clear();
+    }
+}

@@ -99,3 +99,8 @@ bool ADTFile::isOk()
 {
     return this->FS.good();
 }
+
+string ADTFile::getFileName()
+{
+    return this->Nombre;
+}

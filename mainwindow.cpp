@@ -164,6 +164,7 @@ void MainWindow::on_CloseFile_triggered()
             while(this->fileRecord.fieldsSize() != 0){
                 this->fileRecord.removeField(0);
             }
+            this->fileRecord.cleanMap();
             QMessageBox::information(this,"Correcto","El archivo se cerro correctamente");
         }else{
             QMessageBox::critical(this,"Error","Hubo un error al momento de cerrar el archivo");
@@ -180,6 +181,7 @@ void MainWindow::on_Exit_triggered()
             while(this->fileRecord.fieldsSize() != 0){
                 this->fileRecord.removeField(0);
             }
+            this->fileRecord.cleanMap();
             this->close();
         }else{
             QMessageBox::critical(this,"Error","Hubo un error al momento de guadar el archivo");
@@ -476,9 +478,231 @@ void MainWindow::on_deleteRecord_triggered()
         return;
     }else{
         if(this->fileRecord.deleteRecord(index)){
+            vector<PrimaryIndex*> indexes = this->fileRecord.getIndexes();
+
+            stringstream ss;
+            for(int i = 0; i < indexes.size(); i++){
+                ss<<indexes.at(i)->toString();
+                if(i != indexes.size() -1){
+                    ss<<'/';
+                }
+            }
+            this->indicesFile.seekp(0,ios_base::beg);
+            this->indicesFile.write(ss.str().c_str(),ss.str().length());
+            this->indicesFile.flush();
+
             QMessageBox::information(this,"Correcto","Se ha podido eliminar el registro correctamente");
         }else{
             QMessageBox::critical(this,"Error","No se pudo eliminar el registro, no se encuentra la llave");
+        }
+    }
+}
+
+void MainWindow::on_reindex_triggered()
+{
+    this->indicesFile.flush();
+    this->indicesFile.close();
+    this->fileRecord.cleanMap();
+
+    if(this->indicesFile.open(this->indicesFile.getFileName(),ios_base::in | ios_base::out)){
+        this->indicesFile.seekg(0,ios_base::end);
+        streamoff indexLength = this->indicesFile.tellg();
+
+        char* indexes = new char[indexLength+1];
+
+        this->indicesFile.seekg(0,ios_base::beg);
+        this->indicesFile.read(indexes,indexLength);
+
+        indexes[indexLength] = '\0';
+        string str (indexes);
+        QString qstr = QString::fromStdString(str);
+
+        QStringList list = qstr.split("/");
+
+        for(int i = 0; i < list.size(); i++){
+            QStringList list2 = list.at(i).split(",");
+
+            string key = list2.at(0).toStdString();
+            streamoff offset = atoll(list2.at(1).toStdString().c_str());
+
+            PrimaryIndex* newIndex = new PrimaryIndex(key,offset);
+            this->fileRecord.insertIndex(key,newIndex);
+        }
+        QMessageBox::information(this,"Satisfactorio","Se ha reindexado correctamente");
+    }else{
+        QMessageBox::critical(this,"Error","Hubo un error al momento de cargar al archivo de indices");
+        return;
+    }
+}
+
+void MainWindow::on_doSimpleIndexes_triggered()
+{
+    this->indicesFile.flush();
+    this->indicesFile.close();
+    this->fileRecord.cleanMap();
+
+    if(this->indicesFile.open(this->indicesFile.getFileName(),ios_base::in | ios_base::out)){
+        this->indicesFile.seekg(0,ios_base::end);
+        streamoff indexLength = this->indicesFile.tellg();
+
+        char* indexes = new char[indexLength+1];
+
+        this->indicesFile.seekg(0,ios_base::beg);
+        this->indicesFile.read(indexes,indexLength);
+
+        indexes[indexLength] = '\0';
+        string str (indexes);
+        QString qstr = QString::fromStdString(str);
+
+        QStringList list = qstr.split("/");
+
+        for(int i = 0; i < list.size(); i++){
+            QStringList list2 = list.at(i).split(",");
+
+            string key = list2.at(0).toStdString();
+            streamoff offset = atoll(list2.at(1).toStdString().c_str());
+
+            PrimaryIndex* newIndex = new PrimaryIndex(key,offset);
+            this->fileRecord.insertIndex(key,newIndex);
+        }
+        QMessageBox::information(this,"Satisfactorio","Se han creado los indices simples");
+    }else{
+        QMessageBox::critical(this,"Error","Hubo un error al momento de cargar al archivo de indices");
+        return;
+    }
+}
+
+void MainWindow::on_PrintFile_triggered()
+{
+    if(this->fileRecord.fieldsSize() == 0 || this->fileRecord.getIndexes().size() == 0){
+        QMessageBox::warning(this,"Error","El archivo no contiene campos o registros");
+        return;
+    }
+
+    QString path = QFileDialog::getExistingDirectory(this,"Imprimir archivo en PDF","");
+    if(!path.isEmpty()){
+        path += "/Registros.pdf";
+
+        QString html = "";
+
+
+        html += "<table border=\"1\">";
+
+        vector<Field*> fields = this->fileRecord.getFields();
+
+        html += "<tr>";
+        for(int i = 0; i < fields.size(); i++){
+            Field* currentField = fields.at(i);
+
+            html += "<th>" + QString::fromStdString(currentField->getName()) + "</th>";
+        }
+        html += "</tr>";
+
+        vector<PrimaryIndex*> indexes = this->fileRecord.getIndexes();
+
+
+        for(int i = 0; i < indexes.size(); i++){
+            PrimaryIndex* currentIndex = indexes.at(i);
+            Record* currentRecord = this->fileRecord.getRecord(currentIndex);
+
+            vector<string> currentVector = currentRecord->getRecord();
+
+            html += "<tr>";
+            for(int j = 0; j < currentVector.size(); j++){
+                html += "<td>" + QString::fromStdString(currentVector[j])+ "</td>";
+            }
+            html += "</tr>";
+        }
+
+        html +="</table>";
+
+        QTextDocument document;
+        document.setHtml(html);
+        QPrinter printer;
+        printer.setOutputFileName(path);
+        printer.setOutputFormat(QPrinter::PdfFormat);
+        document.print(&printer);
+        printer.newPage();
+
+        QMessageBox::information(this,"Satisfactorio","Los registros se han impreso en el archivo Registro.pdf");
+    }
+}
+
+void MainWindow::on_exportXML_triggered()
+{
+    if(!this->fileRecord.isOpen()){
+        QMessageBox::critical(this,"Error","No tiene un archivo abierto para exportar sus campos y registros");
+        return;
+    }
+
+    if(this->fileRecord.fieldsSize() == 0 || this->fileRecord.getIndexes().size() == 0){
+        QMessageBox::warning(this,"Error","El archivo no tiene campos o registros");
+        return;
+    }
+
+    QString path = QFileDialog::getExistingDirectory(this,"Exportar en archivo XML","");
+
+
+    if(!path.isEmpty()){
+        path += "/Registros.xml";
+
+        QFile file (path);
+
+        if(!file.open(QIODevice::WriteOnly)){
+            QMessageBox::warning(this,"Error","No se puede exportar a xml, error al abrir archivo destino");
+            return;
+        }else{
+            QXmlStreamWriter xmlw;
+            xmlw.setDevice(&file);
+            xmlw.writeStartDocument();
+
+            xmlw.writeStartElement("fileRecord");
+
+            vector<PrimaryIndex*> indexes = this->fileRecord.getIndexes();
+
+            for(int i = 0; i < indexes.size(); i++){
+                PrimaryIndex* currentIndex = indexes.at(i);
+
+                Record* currentRecord = this->fileRecord.getRecord(currentIndex);
+                vector<Field*> fields = currentRecord->getFields();
+                vector<string> record = currentRecord->getRecord();
+
+                xmlw.writeStartElement("record");
+
+                for(int j = 0; j < fields.size(); j++){
+                    Field* currentField = fields.at(j);
+
+                    xmlw.writeStartElement(QString::fromStdString(currentField->getName()));
+                    if(currentField->isKey()){
+                        xmlw.writeAttribute("key","true");
+                    }else{
+                        xmlw.writeAttribute("key","false");
+                    }
+
+                    if(currentField->getType() == 'E'){
+                        xmlw.writeAttribute("type","integer");
+                    }else if(currentField->getType() == 'R'){
+                        xmlw.writeAttribute("type","real");
+                    }else{
+                        xmlw.writeAttribute("type","string");
+                    }
+
+                    xmlw.writeAttribute("length",QString::number(currentField->getLength()));
+
+                    if(currentField->getType() == 'R'){
+                        xmlw.writeAttribute("decimalPlaces",QString::number(currentField->getDecimalPlaces()));
+                    }
+
+                    xmlw.writeCharacters(QString::fromStdString(record[j]));
+                    xmlw.writeEndElement();
+                }
+                xmlw.writeEndElement();
+            }
+
+            xmlw.writeEndElement();
+            xmlw.writeEndDocument();
+
+            QMessageBox::information(this,"Satisfactorio","Se ha creado correctamente el archivo XML");
         }
     }
 }

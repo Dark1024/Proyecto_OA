@@ -55,6 +55,7 @@ public:
     PrimaryIndex* searchRecord(string);
     bool deleteRecord(PrimaryIndex*);
     void insertIndex(string, PrimaryIndex*);
+    void cleanMap();
 
 private:
     int recordLength;
