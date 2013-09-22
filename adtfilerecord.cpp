@@ -241,3 +241,59 @@ bool ADTFileRecord::indexesIsEmpty()
         return true;
     return false;
 }
+
+Record* ADTFileRecord::getRecord(PrimaryIndex* pi)
+{
+    if(!this->isOpen()){
+        return NULL;
+    }
+
+    this->FS.seekg(pi->getOffset(),ios_base::beg);
+    this->FS.seekp(pi->getOffset(),ios_base::beg);
+
+    char* tmp = new char[this->recordLength + 1];
+
+    streamoff rl = this->recordLength;
+    this->FS.read(tmp,rl);
+    tmp[this->recordLength] = '\0';
+
+    string str (tmp);
+    QString qstr = QString::fromStdString(str);
+    vector<string> record;
+
+    int counter = 0;
+    for(int i = 0; i < this->fields.size(); i++){
+        Field* currentField = fields.at(i);
+
+        QString qstr2 = qstr.mid(counter,currentField->getLength());
+
+        cout<<qstr2.toStdString()<<endl;
+
+        qstr2 = qstr2.replace("_"," ");
+
+        record.push_back(qstr2.toStdString());
+
+        counter += currentField->getLength();
+    }
+
+    Record* newRecord = new Record(this->fields,record);
+    return newRecord;
+}
+
+void ADTFileRecord::insertIndex(string key, PrimaryIndex* index)
+{
+    this->indexes.insert(QString::fromStdString(key),index);
+}
+
+PrimaryIndex* ADTFileRecord::searchRecord(string key)
+{
+    if(!this->isOpen()){
+        return NULL;
+    }
+
+    if(!this->indexes.contains(QString::fromStdString(key))){
+        return NULL;
+    }
+
+    return this->indexes.value(QString::fromStdString(key));
+}

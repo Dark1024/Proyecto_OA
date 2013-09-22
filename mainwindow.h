@@ -37,7 +37,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-    
+
 private slots:
     void on_NewFile_triggered();
 
@@ -57,9 +57,11 @@ private slots:
 
     void on_insertRecord_triggered();
 
-private:
-    QMap<string,PrimaryIndex*> map;
+    void on_searchRecord_triggered();
 
+    void on_listRecord_triggered();
+
+private:
     ADTFile indicesFile;
     ADTFileRecord fileRecord;
     Ui::MainWindow *ui;

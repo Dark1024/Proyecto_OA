@@ -92,6 +92,13 @@ void MainWindow::on_OpenFile_triggered()
 
         this->fileRecord.readHeader(header);
 
+        int rl = 0;
+        vector<Field*> fields = this->fileRecord.getFields();
+        for(int i = 0; i < fields.size(); i++){
+            rl += fields.at(i)->getLength();
+        }
+        this->fileRecord.setRecordLength(rl);
+
         //LEER EL ARCHIVO DE INDICES
 
         QString str = file.insert(file.size()-5,"-indices");
@@ -118,7 +125,7 @@ void MainWindow::on_OpenFile_triggered()
                 streamoff offset = atoll(list2.at(1).toStdString().c_str());
 
                 PrimaryIndex* newIndex = new PrimaryIndex(key,offset);
-                this->map.insert(key,newIndex);
+                this->fileRecord.insertIndex(key,newIndex);
             }
         }else{
             QMessageBox::critical(this,"Error","Hubo un error al momento de cargar al archivo de indices");
@@ -213,6 +220,14 @@ void MainWindow::on_createField_triggered()
         this->fileRecord.seekp(0,ios_base::beg);
         this->fileRecord.write(header.c_str(),header.size());
         this->fileRecord.flush();
+
+        vector<Field*> fields = this->fileRecord.getFields();
+        int rl = 0;
+        for(int i = 0; i < fields.size(); i++){
+            rl += fields.at(i)->getLength();
+        }
+        this->fileRecord.setRecordLength(rl);
+
 
         delete createField;
     }else{
@@ -361,5 +376,74 @@ void MainWindow::on_insertRecord_triggered()
     }else{
         QMessageBox::critical(this,"Error","Hubo un error al insertar el nuevo registro");
         delete newRecord;
+    }
+}
+
+void MainWindow::on_searchRecord_triggered()
+{
+    vector<Field*> fields = this->fileRecord.getFields();
+    QString str;
+
+    for(int i = 0; i< fields.size(); i++){
+        Field* currentField = fields.at(i);
+        if(currentField->isKey()){
+            InputDialog* idialog = new InputDialog();
+            idialog->setField(currentField);
+            idialog->exec();
+
+            if(idialog->getString().isEmpty()){
+                return;
+            }
+
+            str = idialog->getString();
+            delete idialog;
+       }
+    }
+
+    PrimaryIndex* index = this->fileRecord.searchRecord(str.toStdString());
+
+    if(index == NULL){
+        QMessageBox::critical(this,"Error","El registro que buscaba no se encontro");
+        return;
+    }else{
+        Record* record = this->fileRecord.getRecord(index);
+        vector<string> r = record->getRecord();
+
+        QStandardItemModel* model = new QStandardItemModel(1,1,this);
+        for(int i = 0; i < fields.size(); i++){
+            model->setHorizontalHeaderItem(i,new QStandardItem(QString::fromStdString(fields[i]->getName())));
+        }
+
+        for(int i = 0; i < fields.size(); i++){
+            model->setItem(0,i,new QStandardItem(QString::fromStdString(r[i])));
+        }
+        delete record;
+        ui->MWTable->setModel(model);
+    }
+}
+
+void MainWindow::on_listRecord_triggered()
+{
+    QStandardItemModel* model = new QStandardItemModel(1,1,this);
+
+    vector<Field*> fields = this->fileRecord.getFields();
+    vector<PrimaryIndex*> indexes = this->fileRecord.getIndexes();
+
+    for(int i = 0; i < fields.size(); i++){
+        model->setHorizontalHeaderItem(i,new QStandardItem(QString::fromStdString(fields[i]->getName())));
+    }
+
+    for(int i = 0; i < indexes.size(); i++){
+        PrimaryIndex* currentIndex = indexes.at(i);
+        if(currentIndex != NULL){
+            Record* record = this->fileRecord.getRecord(currentIndex);
+            vector<string> r = record->getRecord();
+
+            for(int j = 0; j < fields.size(); j++){
+                model->setItem(i,j,new QStandardItem(QString::fromStdString(r[j])));
+            }
+            delete record;
+            ui->MWTable->setModel(model);
+        }
     }
 }

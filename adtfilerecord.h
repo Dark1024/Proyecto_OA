@@ -22,7 +22,7 @@ using namespace std;
 
 class ADTFileRecord:public ADTFile
 {
-public:
+public:    
     ADTFileRecord();
     ADTFileRecord(string, int);
     virtual ~ADTFileRecord();
@@ -51,20 +51,20 @@ public:
     vector<PrimaryIndex*> getIndexes();
     bool addRecord(Record*);
     bool indexesIsEmpty();
-    //Record* getRecord(PrimaryIndex*);
-    //PrimaryIndex* searchRecord(string);
+    Record* getRecord(PrimaryIndex*);
+    PrimaryIndex* searchRecord(string);
     //bool deleteRecord(string);
-
+    void insertIndex(string, PrimaryIndex*);
 
 private:
     int recordLength;
     streamoff dataStart;
     string fileName;
-    fstream FS;
+    //fstream FS;
 
+    QMap<QString,PrimaryIndex*> indexes;
     QStack<streamoff> AvailList;
     vector<Field*> fields;
-    QMap<QString,PrimaryIndex*> indexes;
 };
 
 #endif // ADTFILERECORD_H
