@@ -53,7 +53,7 @@ public:
     bool indexesIsEmpty();
     Record* getRecord(PrimaryIndex*);
     PrimaryIndex* searchRecord(string);
-    //bool deleteRecord(string);
+    bool deleteRecord(PrimaryIndex*);
     void insertIndex(string, PrimaryIndex*);
 
 private:

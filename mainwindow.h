@@ -61,6 +61,8 @@ private slots:
 
     void on_listRecord_triggered();
 
+    void on_deleteRecord_triggered();
+
 private:
     ADTFile indicesFile;
     ADTFileRecord fileRecord;

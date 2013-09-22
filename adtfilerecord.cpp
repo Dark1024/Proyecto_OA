@@ -297,3 +297,21 @@ PrimaryIndex* ADTFileRecord::searchRecord(string key)
 
     return this->indexes.value(QString::fromStdString(key));
 }
+
+bool ADTFileRecord::deleteRecord(PrimaryIndex* index)
+{
+    streamoff offset = index->getOffset();
+
+    this->FS.seekp(offset,ios_base::beg);
+    char* tmp = "*";
+    this->FS.write(tmp,1);
+
+    this->FS.flush();
+
+
+    if(this->indexes.remove(QString::fromStdString(index->getKey())) == 0 ){
+        return false;
+    }
+    this->AvailList.push_back(offset);
+    return true;
+}

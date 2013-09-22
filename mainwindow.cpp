@@ -447,3 +447,38 @@ void MainWindow::on_listRecord_triggered()
         }
     }
 }
+
+void MainWindow::on_deleteRecord_triggered()
+{
+    vector<Field*> fields = this->fileRecord.getFields();
+    QString str;
+
+    for(int i = 0; i< fields.size(); i++){
+        Field* currentField = fields.at(i);
+        if(currentField->isKey()){
+            InputDialog* idialog = new InputDialog();
+            idialog->setField(currentField);
+            idialog->exec();
+
+            if(idialog->getString().isEmpty()){
+                return;
+            }
+
+            str = idialog->getString();
+            delete idialog;
+       }
+    }
+
+    PrimaryIndex* index = this->fileRecord.searchRecord(str.toStdString());
+
+    if(index == NULL){
+        QMessageBox::critical(this,"Error","No se encontro el registro con la llave ingresada");
+        return;
+    }else{
+        if(this->fileRecord.deleteRecord(index)){
+            QMessageBox::information(this,"Correcto","Se ha podido eliminar el registro correctamente");
+        }else{
+            QMessageBox::critical(this,"Error","No se pudo eliminar el registro, no se encuentra la llave");
+        }
+    }
+}
