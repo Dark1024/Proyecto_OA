@@ -1,6 +1,7 @@
 #ifndef ADTFILERECORD_H
 #define ADTFILERECORD_H
 
+//Importacion de encabezados necesarios
 #include <vector>
 #include <fstream>
 #include <iostream>
@@ -20,23 +21,23 @@
 
 using namespace std;
 
+/**************************************************
+ *Clase ADTFileRecord, descendiente de ADTFile
+ *Contiene metodos extras necesarios para manipular
+ *los archivos especiales del programa
+ **************************************************
+*/
+
 class ADTFileRecord:public ADTFile
 {
-public:    
+    //Metodos publicos de la clase
+public:
+    //Constructores y destructor
     ADTFileRecord();
     ADTFileRecord(string, int);
     virtual ~ADTFileRecord();
 
-    //metodos no utilizados
-    //virtual void seekgRecord(int);
-    //virtual void seekpRecord(int);
-    //virtual string readRecord(int);
-    //virtual bool writeRecord(string);
-    //virtual bool updateRecord(int, string);
-    //virtual bool deleteRecord(int);
-    //virtual void compact();
-
-    //metodos utilizados para campos y registros
+    //Mutadores y accesores
     void setDataStart(streamoff);
     void setRecordLength(int);
     void readHeader(char*);
@@ -57,11 +58,11 @@ public:
     void insertIndex(string, PrimaryIndex*);
     void cleanMap();
 
+    //Caracteristicas privadas de la clase
 private:
     int recordLength;
     streamoff dataStart;
     string fileName;
-    //fstream FS;
 
     QMap<QString,PrimaryIndex*> indexes;
     QStack<streamoff> AvailList;

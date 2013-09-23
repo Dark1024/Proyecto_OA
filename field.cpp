@@ -1,5 +1,6 @@
 #include "field.h"
 
+//Constructor
 Field::Field()
 {
     this->Name = "";
@@ -9,6 +10,7 @@ Field::Field()
     this->Decimals = 0;
 }
 
+//Constructor sobrecargadp
 Field::Field(string Name, char Type, int Key, int Length, int Decimals)
 {
     this->Name = Name;
@@ -18,9 +20,12 @@ Field::Field(string Name, char Type, int Key, int Length, int Decimals)
     this->Decimals = Decimals;
 }
 
+//Destructor de la clase
 Field::~Field()
 {
 }
+
+//Mutadores y accesores
 
 string Field::getName() const
 {
@@ -74,6 +79,7 @@ void Field::setDecimalPlaces(int Decimals)
     this->Decimals = Decimals;
 }
 
+//toString de la clase
 string Field::toString() const{
     stringstream ss;
     ss<<this->Name<<','

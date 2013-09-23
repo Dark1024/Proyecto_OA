@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+//Importacion de los encabezados necesarios para la ventana principal
 #include "adtfilerecord.h"
 #include "field.h"
 #include "newfieldwindow.h"
@@ -40,14 +41,22 @@ namespace Ui {
 class MainWindow;
 }
 
+/****************************************************************
+ *Esta clase es la encargada de manejar toda la ventana principal
+ *Se encarga de ejecutar todo lo necesario para el funcionamiento
+ *del programa
+ ****************************************************************
+ */
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-    
+
+    //Metodos publicos de la clase principal
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+    //Las acciones que se ejecutan con eventos
 private slots:
     void on_NewFile_triggered();
 
@@ -83,6 +92,7 @@ private slots:
 
     void on_importXML_triggered();
 
+    //Las pocas pero importantes propiedades de la clase principal
 private:
     ADTFile indicesFile;
     ADTFileRecord fileRecord;

@@ -1,15 +1,18 @@
 #include "record.h"
 
+//Constructor
 Record::Record(vector<Field*> fields, vector<string> record)
 {
     this->fields = fields;
     this->record = record;
 }
 
+//Destructor
 Record::~Record()
 {
 }
 
+//toString
 string Record::toString() const
 {
     stringstream ss;
@@ -23,6 +26,7 @@ string Record::toString() const
     return ss.str();
 }
 
+//Accesores
 vector<Field*> Record::getFields() const
 {
     return this->fields;
