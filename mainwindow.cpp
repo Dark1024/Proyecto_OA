@@ -85,7 +85,6 @@ void MainWindow::on_OpenFile_triggered()
         }
         data_start++;
         this->fileRecord.setDataStart(data_start);
-        cout<<"Data Start: "<<this->fileRecord.getDataStart()<<endl;
 
         char* header = new char[ss.str().length() + 1];
         strcpy(header,ss.str().c_str());
@@ -212,8 +211,6 @@ void MainWindow::on_createField_triggered()
                 }
             }
             this->fileRecord.addField(newField);
-        }else{
-            cout<<"Campo NULL"<<endl;
         }
 
         string header = this->fileRecord.toStringHeader();
@@ -246,18 +243,17 @@ void MainWindow::on_modifyField_triggered()
 
     if(this->fileRecord.isOpen()){
         ModifyFieldWindow* modifyField = new ModifyFieldWindow();
-        cout<<"Marca1"<<endl;
+
         modifyField->setFields(this->fileRecord.getFields());
         modifyField->exec();
 
-        cout<<"Marca2"<<endl;
         Field* newField = modifyField->getField();
 
         if(newField != NULL){
             int index = modifyField->getIndex();
             this->fileRecord.modifyField(index,newField);
         }else{
-            cout<<"Campo NULL"<<endl;
+
         }
 
         string header = this->fileRecord.toStringHeader();
@@ -609,7 +605,9 @@ void MainWindow::on_PrintFile_triggered()
 
             html += "<tr>";
             for(int j = 0; j < currentVector.size(); j++){
-                html += "<td>" + QString::fromStdString(currentVector[j])+ "</td>";
+                QString str = QString::fromStdString(currentVector[j]);
+                str = str.trimmed();
+                html += "<td>" + str + "</td>";
             }
             html += "</tr>";
         }
@@ -693,7 +691,8 @@ void MainWindow::on_exportXML_triggered()
                         xmlw.writeAttribute("decimalPlaces",QString::number(currentField->getDecimalPlaces()));
                     }
 
-                    xmlw.writeCharacters(QString::fromStdString(record[j]));
+                    QString str = QString::fromStdString(record[j]).trimmed();
+                    xmlw.writeCharacters(str);
                     xmlw.writeEndElement();
                 }
                 xmlw.writeEndElement();
@@ -704,5 +703,180 @@ void MainWindow::on_exportXML_triggered()
 
             QMessageBox::information(this,"Satisfactorio","Se ha creado correctamente el archivo XML");
         }
+    }
+}
+
+
+void MainWindow::on_importXML_triggered()
+{
+    QString file = QFileDialog::getOpenFileName(this,"Importar archivo XML","","XML (*.xml)");
+
+    if(!file.isEmpty()){
+
+        if(this->fileRecord.isOpen()){
+            this->fileRecord.close();
+        }
+        if(this->indicesFile.isOpen()){
+            this->indicesFile.close();
+        }
+
+        while(this->fileRecord.fieldsSize() != 0){
+            this->fileRecord.removeField(0);
+        }
+
+        QString directory = QFileDialog::getExistingDirectory(this,"New File","");
+        if(!directory.isEmpty()){
+            bool val;
+            QString fileName = QInputDialog::getText(this,"Nombre del Archivo","Escriba el nombre del archivo que desea crear",QLineEdit::Normal,"",&val);
+            if(val && !fileName.isEmpty()){
+                QString Path = directory + "/" + fileName + ".jjdb";
+                if(!this->fileRecord.open(Path.toStdString())){
+                    this->fileRecord.open(Path.toStdString(),ios_base::out);
+                    this->fileRecord.write("$$",2);
+                    this->fileRecord.flush();
+                    this->fileRecord.close();
+
+                    QString indicesPath = directory + "/" + fileName + "-indices.jjdb";
+                    this->indicesFile.open(indicesPath.toStdString().c_str(),ios_base::out);
+                    this->indicesFile.write("$$",2);
+                    this->indicesFile.flush();
+                    this->indicesFile.close();
+
+                    this->indicesFile.open(indicesPath.toStdString().c_str(),ios_base::in | ios_base::out);
+
+                    if(this->fileRecord.open(Path.toStdString(),ios_base::in | ios_base::out)){
+
+                        QDomDocument document;
+                        QFile qfile(file);
+
+                        if(!qfile.open(QIODevice::ReadOnly)){
+                            QMessageBox::critical(this,"Error","Hubo un error en la lectura del archivo XML");
+                            return;
+                        }
+
+                        if(!document.setContent(&qfile)){
+                            QMessageBox::critical(this,"Error","Hubo un error de lectura del archivo XML");
+                            return;
+                        }
+
+                        QDomElement db = document.documentElement();
+
+                        QDomNode fr = db.firstChild().firstChild();
+
+                        QDomElement elem = fr.toElement();
+
+                        while(!elem.isNull()){
+                                QString name = elem.tagName();
+
+                                if(!elem.hasAttributes()){
+                                    QMessageBox::critical(this,"Error","El archivo XML contiene una mala estructura");
+                                    return;
+                                }
+
+                                QDomNamedNodeMap map = elem.attributes();
+
+                                char type;
+                                int length;
+                                int decimalPlaces = 0;
+                                int key = 0;
+
+                                if(map.size() < 3){
+                                    QMessageBox::critical(this,"Error","El archivo XML contiene una mala estructura");
+                                    return;
+                                }
+
+                                for(int i = 0; i < map.size(); i++){
+                                    if(!map.item(i).isNull()){
+                                        QDomNode node = map.item(i);
+                                        QDomAttr attr = node.toAttr();
+
+                                        if(attr.name() == "key"){
+                                            if(attr.value() == "true"){
+                                                key = 1;
+                                            }
+                                        }else if(attr.name() == "type"){
+                                            if(attr.value() == "integer"){
+                                                type = 'E';
+                                            }else if(attr.value() == "real"){
+                                                type = 'R';
+                                            }else{
+                                                type = 'C';
+                                            }
+                                        }else if(attr.name() == "length"){
+                                            length = attr.value().toInt();
+                                        }else if(attr.name() == "decimalPlaces"){
+                                            decimalPlaces = attr.value().toInt();
+                                        }else{
+                                            QMessageBox::critical(this,"Error","El archivo XML tiene una mala estructura");
+                                            return;
+                                        }
+                                    }else{
+                                        QMessageBox::critical(this,"Error","Mala estructura del archivo XML");
+                                        return;
+                                    }
+                                }
+
+                                Field* newField = new Field(name.toStdString(),type,key,length,decimalPlaces);
+                                this->fileRecord.addField(newField);
+                                elem = elem.nextSibling().toElement();
+                        }
+
+                        int rl = 0;
+                        vector<Field*> fields = this->fileRecord.getFields();
+                        for(int i = 0; i < fields.size(); i++){
+                            rl += fields.at(i)->getLength();
+                        }
+                        this->fileRecord.setRecordLength(rl);
+
+                        this->fileRecord.cleanMap();
+
+                        string header = this->fileRecord.toStringHeader();
+                        this->fileRecord.write(header.c_str(),header.size());
+                        this->fileRecord.flush();
+
+                        QDomElement start_data = db.firstChild().toElement();
+
+                        while(!start_data.isNull()){
+                            vector<string> record;
+
+                            QDomElement e = start_data.firstChild().toElement();
+                            while(!e.isNull()){
+                                record.push_back(e.text().trimmed().toStdString());
+                                e = e.nextSibling().toElement();
+                            }
+
+                            Record* r  = new Record(this->fileRecord.getFields(),record);
+                            this->fileRecord.addRecord(r);
+
+
+                            start_data = start_data.nextSibling().toElement();
+                        }
+
+                        vector<PrimaryIndex*> indexes = this->fileRecord.getIndexes();
+
+                        stringstream ss;
+                        for(int i = 0; i < indexes.size(); i++){
+                            ss<<indexes.at(i)->toString();
+                            if(i != indexes.size() -1){
+                                ss<<'/';
+                            }
+                        }
+                        this->indicesFile.seekp(0,ios_base::beg);
+                        this->indicesFile.write(ss.str().c_str(),ss.str().length());
+                        this->indicesFile.flush();
+
+                        qfile.close();
+
+                        QMessageBox::information(this,"Satisfactorio","Se ha creado el archivo de registros correctamente");
+
+                    }else{
+                        QMessageBox::critical(this,"Error","Hubo un error inesperado al momento de abrir el archivo creado");
+                    }
+                }else{
+                    QMessageBox::critical(this,"Error","Hubo un error al momento de abrir el archivo para su inicializacion");
+                }
+            }
+        }
+
     }
 }

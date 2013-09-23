@@ -267,8 +267,6 @@ Record* ADTFileRecord::getRecord(PrimaryIndex* pi)
 
         QString qstr2 = qstr.mid(counter,currentField->getLength());
 
-        cout<<qstr2.toStdString()<<endl;
-
         qstr2 = qstr2.replace("_"," ");
 
         record.push_back(qstr2.toStdString());

@@ -23,6 +23,10 @@
 #include <QtPrintSupport/qprintdialog.h>
 #include <QtPrintSupport/qtprintsupportglobal.h>
 #include <QXmlStreamWriter>
+#include <QtXml/QDomDocument>
+#include <QtXml/QDomElement>
+#include <QtXml/QDomNode>
+#include <QtXml/QDomAttr>
 
 #include <string>
 #include <vector>
@@ -76,6 +80,8 @@ private slots:
     void on_PrintFile_triggered();
 
     void on_exportXML_triggered();
+
+    void on_importXML_triggered();
 
 private:
     ADTFile indicesFile;

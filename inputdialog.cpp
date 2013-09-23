@@ -34,12 +34,14 @@ void InputDialog::setField(Field* field){
     ui->IDLineEdit->setText("");
 
     stringstream ss;
-    if(field->getType() == 'C'){
-        ss<<"[A-Za-z][A-Za-z0-9]*";
+    if(field->getType() == 'R'){
+        ss<<"[0-9]*[.][0-9]{1,";
+        ss<<field->getDecimalPlaces();
+        ss<<"}";
     }else if(field->getType() == 'E'){
         ss<<"[0-9]*";
     }else{
-        ss<<"[0-9]*\.[0-9]{1,"<<field->getDecimalPlaces()<<"}";
+        ss<<"[A-Za-z][A-Za-z0-9]*";
     }
 
     QRegExp exp(QString::fromStdString(ss.str()));
