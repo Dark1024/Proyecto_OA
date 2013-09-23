@@ -1075,3 +1075,23 @@ void MainWindow::on_importXML_triggered()
 
     }
 }
+
+void MainWindow::on_crossTables_triggered()
+{
+    return;//xD
+
+    //verifica si el archivo de registros esta abierto
+    if(!this->fileRecord.isOpen()){
+        QMessageBox::warning(this,"Error","No contiene un archivo de registros abierto");
+        return;
+    }
+
+    ADTFile* empl;
+
+    QString file = QFileDialog::getOpenFileName(this,"Abrir archivo .csv","","Archivos CSV(*.csv)");
+
+    if(empl->open(file.toStdString(),ios_base::in)){
+        empl->seekg(0,ios_base::beg);
+        //NO SE QUE HACER XD
+    }
+}

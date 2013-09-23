@@ -93,6 +93,8 @@ private slots:
     void on_importXML_triggered();
 
     //Las pocas pero importantes propiedades de la clase principal
+    void on_crossTables_triggered();
+
 private:
     ADTFile indicesFile;
     ADTFileRecord fileRecord;
